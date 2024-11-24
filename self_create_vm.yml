@@ -7,7 +7,7 @@
         url: "https://192.168.39.45/v3/vms"
         method: POST
         user: "{{ admin }}"
-        password: "{{ password }}"
+        password: "{{ P@ssw0rd1234 }}"
         headers:
           Content-Type: "application/json"
         body: |
@@ -34,7 +34,7 @@
           }
         body_format: json
         validate_certs: no
-        return_content: yes  # To capture the response content
+        register: response
 
     - name: Show API Response
       debug:

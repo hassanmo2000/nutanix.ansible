@@ -2,7 +2,7 @@
 - name: Create a new VM via Nutanix API
   hosts: localhost
   vars:
-    admin: "admin"  
+    admin: "your_admin_username"
     password: "P@ssw0rd1234"
   tasks:
     - name: Create VM
@@ -37,7 +37,7 @@
           }
         body_format: json
         validate_certs: no
-        register: response
+        return_content: yes  # To capture the response content
 
     - name: Show API Response
       debug:

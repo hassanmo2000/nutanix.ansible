@@ -1,0 +1,42 @@
+---
+- name: Create a new VM via Nutanix API
+  hosts: localhost
+  tasks:
+    - name: Create VM
+      uri:
+        url: "https://192.168.39.45/v3/vms"
+        method: POST
+        user: "{{ admin }}"
+        password: "{{ P@ssw0rd1234 }}"
+        headers:
+          Content-Type: "application/json"
+        body: |
+          {
+            "name": "web-server-01",
+            "memory_mb": 8192,
+            "num_vcpus": 4,
+            "num_cores_per_vcpu": 2,
+            "vm_nics": [
+              {
+                "network_uuid": "e1530106-3d95-4d13-a232-37d447d8f0ed",
+                "is_connected": true,
+                "request_ip": true
+              }
+            ],
+            "vm_disks": [
+              {
+                "vm_disk_create": {
+                  "size": 10240,
+                  "storage_container_uuid": "47d5155f-ebe6-4fbc-b2e3-1dc44222856a
+"
+                }
+              }
+            ]
+          }
+        body_format: json
+        validate_certs: no
+        register: response
+
+    - name: Show API Response
+      debug:
+        var: response

@@ -27,8 +27,7 @@
               {
                 "vm_disk_create": {
                   "size": 10240,
-                  "storage_container_uuid": "47d5155f-ebe6-4fbc-b2e3-1dc44222856a
-"
+                  "storage_container_uuid": "47d5155f-ebe6-4fbc-b2e3-1dc44222856a"
                 }
               }
             ]

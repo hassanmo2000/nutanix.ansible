@@ -1,13 +1,16 @@
 ---
 - name: Create a new VM via Nutanix API
   hosts: localhost
+  vars:
+    admin: "admin"  
+    password: "P@ssw0rd1234"
   tasks:
     - name: Create VM
       uri:
         url: "https://192.168.39.45/v3/vms"
         method: POST
         user: "{{ admin }}"
-        password: "{{ P@ssw0rd1234 }}"
+        password: "{{ password }}"
         headers:
           Content-Type: "application/json"
         body: |

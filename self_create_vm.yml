@@ -151,7 +151,9 @@
           Content-Type: application/json
         body: |
           {
-            "power_state": "ON"
+            "host_uuid": "{{ vm_creation.json.metadata.uuid }}",
+            "transition": "ON",
+            "uuid": "{{ vm_creation.json.metadata.uuid }}"
           }
         return_content: true
       register: poweron_vm

@@ -1,5 +1,5 @@
 ---
-- name: Clusters_Info playbook
+- name: Create a new VM via Nutanix API
   hosts: localhost
   gather_facts: false
   collections:
@@ -11,7 +11,10 @@
       nutanix_password: "P@ssw0rd1234"
       validate_certs: false
   tasks:
-    
+    - name: Create VM
+      uri:
+        url: "https://192.168.39.45:9440/api/nutanix/v3/vms"
+        method: POST
         headers:
           Content-Type: "application/json"
         body: |
@@ -38,9 +41,8 @@
           }
         body_format: json
         validate_certs: no
-        return_content: yes  
-
-      register: response  
+        return_content: yes
+      register: response
 
     - name: Show API Response
       debug:

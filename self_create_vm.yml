@@ -1,46 +1,147 @@
 ---
-- name: Create a new VM via Nutanix API
+- name: Create VM on Nutanix
   hosts: localhost
   gather_facts: false
+
   vars:
-    nutanix_host: "192.168.39.45"
-    nutanix_username: "admin"
-    nutanix_password: "P@ssw0rd1234"
+    prism: "192.168.39.39"
+    prism_user: "admin"
+    prism_password: "P@ssw0rd1234"
     validate_certs: false
+    golden_image_name: "Windows 2019"
+    subnet_name: "39"
+    cluster_name: "infra"
+    vm_name: "egyy"
+    vm_cpu: 4
+    vm_memory: 8
+    network_uuid: "e1530106-3d95-4d13-a232-37d447d8f0ed"
+    storage_container_uuid: "47d5155f-ebe6-4fbc-b2e3-1dc44222856a"
+
   tasks:
-    - name: Create VM
+    - name: Retrieve Information of Golden Image
       uri:
-        url: "https://192.168.39.45:9440/api/nutanix/v3/vms/list"
+        url: "https://{{ prism }}:9440/api/nutanix/v3/images/list"
+        user: "{{ prism_user }}"
+        password: "{{ prism_password }}"
         method: POST
-        headers:
-          Content-Type: "application/json"
         body: |
           {
-            "name": "web-server-01",
-            "memory_mb": 8192,
-            "num_vcpus": 4,
-            "num_cores_per_vcpu": 2,
-            "vm_nics": [
-              {
-                "network_uuid": "e1530106-3d95-4d13-a232-37d447d8f0ed",
-                "is_connected": true,
-                "request_ip": true
-              }
-            ],
-            "vm_disks": [
-              {
-                "vm_disk_create": {
-                  "size": 10240,
-                  "storage_container_uuid": "47d5155f-ebe6-4fbc-b2e3-1dc44222856a"
-                }
-              }
-            ]
+            "filter": "name=={{ golden_image_name }}"
           }
-        body_format: json
+        force_basic_auth: yes
         validate_certs: no
-        return_content: yes
-      register: response
+        body_format: json
+        headers:
+          Content-Type: application/json
+        return_content: true
+      register: golden_image
 
-    - name: Show API Response
-      debug:
-        var: response
+    - name: Retrieve Information for Subnet
+      uri:
+        url: "https://{{ prism }}:9440/api/nutanix/v3/subnets/list"
+        user: "{{ prism_user }}"
+        password: "{{ prism_password }}"
+        method: POST
+        body: |
+          {
+            "filter": "name=={{ subnet_name }}"
+          }
+        force_basic_auth: yes
+        validate_certs: no
+        body_format: json
+        headers:
+          Content-Type: application/json
+        return_content: true
+      register: vm_subnet
+
+    - name: Retrieve Information of Cluster
+      uri:
+        url: "https://{{ prism }}:9440/api/nutanix/v3/clusters/list"
+        user: "{{ prism_user }}"
+        password: "{{ prism_password }}"
+        method: POST
+        body: |
+          {
+            "filter": "name=={{ cluster_name }}"
+          }
+        force_basic_auth: yes
+        validate_certs: no
+        body_format: json
+        headers:
+          Content-Type: application/json
+        return_content: true
+      register: cluster_info
+
+    - name: Create VM
+      uri:
+        url: "https://{{ prism }}:9440/api/nutanix/v3/vms"
+        user: "{{ prism_user }}"
+        password: "{{ prism_password }}"
+        method: POST
+        body: |
+          {
+            "spec": {
+              "name": "{{ vm_name }}",
+              "resources": {
+                "memory_size_mib": {{ vm_memory * 1024 }},
+                "num_vcpus_per_socket": {{ vm_cpu }},
+                "num_sockets": 1,
+                "disk_list": [
+                  {
+                    "data_source_reference": {
+                      "kind": "image",
+                      "uuid": "{{ golden_image.json.entities[0].metadata.uuid }}"
+                    },
+                    "disk_size_mib": {{ golden_image.json.entities[0].status.resources.size_in_bytes // 1024 // 1024 }}
+                  }
+                ],
+                "nic_list": [
+                  {
+                    "subnet_reference": {
+                      "kind": "subnet",
+                      "uuid": "{{ vm_subnet.json.entities[0].metadata.uuid }}"
+                    },
+                    "is_connected": true
+                  }
+                ]
+              },
+              "cluster_reference": {
+                "kind": "cluster",
+                "uuid": "{{ cluster_info.json.entities[0].metadata.uuid }}"
+              }
+            },
+            "api_version": "3.1",
+            "metadata": {
+              "kind": "vm"
+            }
+          }
+        force_basic_auth: yes
+        validate_certs: no
+        body_format: json
+        headers:
+          Content-Type: application/json
+        status_code: 202
+        return_content: true
+      register: vm_creation
+
+    - name: Get VM Attributes
+      uri:
+        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}"
+        user: "{{ prism_user }}"
+        password: "{{ prism_password }}"
+        method: GET
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Content-Type: application/json
+        return_content: true
+      register: get_vm_attributes
+      retries: 10
+      delay: 60
+      until: get_vm_attributes.json.status.resources.nic_list[0].ip_endpoint_list[0].ip is defined
+
+    - name: Capture VM IP for subsequent workflow
+      ansible.builtin.set_stats:
+        data:
+          vm_ip: "{{ get_vm_attributes.json.status.resources.nic_list[0].ip_endpoint_list[0].ip }}"
+

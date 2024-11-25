@@ -11,7 +11,7 @@
     golden_image_name: "Windows 2019"
     subnet_name: "vlan39"
     cluster_name: "infra"
-    vm_name: "egyy"
+    vm_name: "egyboy"
     vm_cpu: 4
     vm_memory: 8
     network_uuid: "e1530106-3d95-4d13-a232-37d447d8f0ed"
@@ -141,7 +141,7 @@
 
     - name: Power on the VM
       uri:
-        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}/poweron"
+        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}/power_state"
         user: "{{ prism_user }}"
         password: "{{ prism_password }}"
         method: POST
@@ -149,6 +149,10 @@
         validate_certs: no
         headers:
           Content-Type: application/json
+        body: |
+          {
+            "power_state": "ON"
+          }
         return_content: true
       register: poweron_vm
 

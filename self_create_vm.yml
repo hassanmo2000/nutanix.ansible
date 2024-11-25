@@ -10,7 +10,7 @@
   tasks:
     - name: Create VM
       uri:
-        url: "https://192.168.39.45:9440/dm/infrastructure/page/explore/s/VMs"
+        url: "'https://192.168.39.45:9440/api/nutanix/v3/vms/list'"
         method: POST
         headers:
           Content-Type: "application/json"

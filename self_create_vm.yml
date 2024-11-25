@@ -92,7 +92,7 @@
                       "kind": "image",
                       "uuid": "{{ golden_image.json.entities[0].metadata.uuid }}"
                     },
-                    "disk_size_mib": {{ golden_image.json.entities[0].status.resources.size_in_bytes // 1024 // 1024 }}
+                    "disk_size_mib": {{  4563402752 // 1024 // 1024 }}
                   }
                 ],
                 "nic_list": [

@@ -141,7 +141,7 @@
 
     - name: Power on the VM
       uri:
-        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}/power_state"
+        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid | string }}/power_state"
         user: "{{ prism_user }}"
         password: "{{ prism_password }}"
         method: POST
@@ -151,16 +151,16 @@
           Content-Type: application/json
         body: |
           {
-            "host_uuid": "{{ vm_creation.json.metadata.uuid }}",
+            "host_uuid": "{{ vm_creation.json.metadata.uuid | string }}",
             "transition": "ON",
-            "uuid": "{{ vm_creation.json.metadata.uuid }}"
+            "uuid": "{{ vm_creation.json.metadata.uuid | string }}"
           }
         return_content: true
       register: poweron_vm
 
     - name: Get VM Attributes
       uri:
-        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}"
+        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid | string }}"
         user: "{{ prism_user }}"
         password: "{{ prism_password }}"
         method: GET

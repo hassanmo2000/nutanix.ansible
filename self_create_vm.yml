@@ -16,7 +16,6 @@
     vm_memory: 8
     network_uuid: "e1530106-3d95-4d13-a232-37d447d8f0ed"
     storage_container_uuid: "47d5155f-ebe6-4fbc-b2e3-1dc44222856a"
-    disk_size_bytes: 4563402752
 
   tasks:
     - name: Retrieve Information of Golden Image
@@ -37,9 +36,10 @@
         return_content: true
       register: golden_image
 
-    - name: Debug Golden Image
-      debug:
-        var: golden_image.json
+    - name: Ensure Golden Image Exists
+      fail:
+        msg: "No golden image found with name '{{ golden_image_name }}'"
+      when: golden_image.json.entities | length == 0
 
     - name: Retrieve Information for Subnet
       uri:
@@ -59,9 +59,10 @@
         return_content: true
       register: vm_subnet
 
-    - name: Debug Subnet
-      debug:
-        var: vm_subnet.json
+    - name: Ensure Subnet Exists
+      fail:
+        msg: "No subnet found with name '{{ subnet_name }}'"
+      when: vm_subnet.json.entities | length == 0
 
     - name: Retrieve Information of Cluster
       uri:
@@ -81,9 +82,10 @@
         return_content: true
       register: cluster_info
 
-    - name: Debug Cluster Info
-      debug:
-        var: cluster_info.json
+    - name: Ensure Cluster Exists
+      fail:
+        msg: "No cluster found with name '{{ cluster_name }}'"
+      when: cluster_info.json.entities | length == 0
 
     - name: Create VM
       uri:
@@ -105,7 +107,7 @@
                       "kind": "image",
                       "uuid": "{{ golden_image.json.entities[0].metadata.uuid }}"
                     },
-                    "disk_size_mib": {{ disk_size_bytes // 1024 // 1024 }}
+                    "disk_size_mib": {{ golden_image.json.entities[0].status.resources.size_in_bytes // 1024 // 1024 }}
                   }
                 ],
                 "nic_list": [
@@ -137,10 +139,6 @@
         return_content: true
       register: vm_creation
 
-    - name: Debug VM Creation
-      debug:
-        var: vm_creation.json
-
     - name: Get VM Attributes
       uri:
         url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}"
@@ -156,10 +154,6 @@
       retries: 10
       delay: 60
       until: get_vm_attributes.json.status.resources.nic_list[0].ip_endpoint_list[0].ip is defined
-
-    - name: Debug VM Attributes
-      debug:
-        var: get_vm_attributes.json
 
     - name: Capture VM IP for subsequent workflow
       ansible.builtin.set_stats:

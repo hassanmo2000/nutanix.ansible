@@ -139,6 +139,19 @@
         return_content: true
       register: vm_creation
 
+    - name: Power on the VM
+      uri:
+        url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}/poweron"
+        user: "{{ prism_user }}"
+        password: "{{ prism_password }}"
+        method: POST
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Content-Type: application/json
+        return_content: true
+      register: poweron_vm
+
     - name: Get VM Attributes
       uri:
         url: "https://{{ prism }}:9440/api/nutanix/v3/vms/{{ vm_creation.json.metadata.uuid }}"

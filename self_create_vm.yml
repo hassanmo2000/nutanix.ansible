@@ -4,7 +4,7 @@
   tasks:
     - name: Create VM
       uri:
-        url: "https://192.168.39.45:9440"
+        url: "https://192.168.39.45:9440/console/#page/explore/s/VMs"
         method: POST
         user: "admin"
         password: "P@ssw0rd1234"

@@ -1,13 +1,17 @@
 ---
-- name: Create a new VM via Nutanix API
+- name: Clusters_Info playbook
   hosts: localhost
+  gather_facts: false
+  collections:
+    - nutanix.ncp
+  module_defaults:
+    group/nutanix.ncp.ntnx:
+      nutanix_host: 192.168.39.45
+      nutanix_username: "admin"
+      nutanix_password: "P@ssw0rd1234"
+      validate_certs: false
   tasks:
-    - name: Create VM
-      uri:
-        url: "https://192.168.39.45:9440/api/nutanix/v3/VMs"
-        method: POST
-        user: "admin"
-        password: "P@ssw0rd1234"
+    
         headers:
           Content-Type: "application/json"
         body: |

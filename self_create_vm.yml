@@ -9,7 +9,7 @@
     prism_password: "P@ssw0rd1234"
     validate_certs: false
     golden_image_name: "Windows 2019"
-    subnet_name: "39"
+    subnet_name: "vlan39"
     cluster_name: "infra"
     vm_name: "egyy"
     vm_cpu: 4

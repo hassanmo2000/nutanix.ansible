@@ -34,8 +34,9 @@
           }
         body_format: json
         validate_certs: no
-        return_content: yes
-        register: response
+        return_content: yes  # Correct usage instead of `register`
+
+      register: response  # Place the register directive here.
 
     - name: Show API Response
       debug:
